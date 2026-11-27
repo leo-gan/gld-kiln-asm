@@ -29,7 +29,8 @@ jobs:
           cp lib/libkiln_asm.so dist/libkiln_asm.so
           cp include/kiln_asm.h dist/kiln_asm.h
           cp bin/kiln_bench_nolibc dist/kiln_bench_nolibc
-          (cd dist && sha256sum libkiln_asm.a libkiln_asm.so kiln_asm.h kiln_bench_nolibc > SHA256SUMS)
+          cp codegen/gld_kilngen_asm.py dist/gld_kilngen_asm.py
+          (cd dist && sha256sum libkiln_asm.a libkiln_asm.so kiln_asm.h kiln_bench_nolibc gld_kilngen_asm.py > SHA256SUMS)
           (cd dist && sha256sum -c SHA256SUMS)
           ls -lh dist/
 
@@ -49,5 +50,6 @@ jobs:
             dist/libkiln_asm.so \
             dist/kiln_asm.h \
             dist/kiln_bench_nolibc \
+            dist/gld_kilngen_asm.py \
             dist/SHA256SUMS \
             --clobber
