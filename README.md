@@ -73,7 +73,7 @@ Full paired tables, A/B microarchitectural findings (`slop32`, fused SWAR UTF-8+
 
 - **[Quickstart & Examples](docs/asm/quickstart.md)** — Prerequisites, `MODE=cabi` / `MODE=nolibc` build targets, and runnable examples.
 - **[API & ABI Reference](docs/asm/api.md)** — C11 API (`include/kiln_asm.h`) and internal x86-64 register-pinned contract.
-- **[Implementation & Verification](docs/asm/internals.md)** — Architecture, SIMD/UTF-8 design, 12-step `KLNT` v2 validation, and 46/46 conformance testing.
+- **[Implementation & Verification](docs/asm/internals.md)** — Architecture, SIMD/SWAR & GPU tradeoffs, 12-step `KLNT` v2 validation, and 46/46 conformance testing.
 - **[Experiments](docs/experiments.md)** — Empirical evaluation comparing `nolibc`, `cabi`, and `c_ref -O3`.
 - **[Normative Wire Specification (v2)](https://leo-gan.github.io/gld-kiln/spec/)** · **[Overview & Comparison](https://leo-gan.github.io/gld-kiln/comparison/)** — Canonical standard in `gld-kiln`.
 
