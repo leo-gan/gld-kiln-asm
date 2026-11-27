@@ -612,6 +612,63 @@ kiln_core_dec_str:
 .size kiln_core_dec_str, .-kiln_core_dec_str
 
 # ------------------------------------------------------------------------------
+# kiln_core_dec_bytes
+#   Decodes u32-prefixed raw bytes (bytes / list<u8>). No UTF-8 validation.
+#   Enforces max_bytes & EOF before touching r14; honors FLAG_OWNED.
+#   Outputs: CF=0, rax = ptr, rdx = len; CF=1 on EOF / LIMIT
+# ------------------------------------------------------------------------------
+.p2align 4
+.globl kiln_core_dec_bytes
+.type kiln_core_dec_bytes, @function
+kiln_core_dec_bytes:
+    mov     rcx, r13
+    sub     rcx, r12
+    cmp     rcx, 4
+    jb      .Ldr_eof
+    mov     edx, DWORD PTR [r12]    # len in rdx
+    cmp     rdx, QWORD PTR [rbx + CTX_MAX_BYTES]
+    ja      .Ldr_limit
+    sub     rcx, 4
+    cmp     rdx, rcx
+    ja      .Ldr_eof
+
+    lea     r8, [r12 + 4]           # body ptr
+    test    r15, FLAG_OWNED
+    jnz     .Ldb_owned
+
+    lea     r12, [r8 + rdx]
+    mov     rax, r8
+    clc
+    ret
+
+.Ldb_owned:
+    mov     r9, QWORD PTR [rbx + CTX_ARENA_END]
+    sub     r9, r14
+    cmp     r9, rdx
+    jb      .Ldr_limit
+    test    rdx, rdx
+    jz      .Ldb_owned_empty
+    push    r8
+    push    rdx
+    mov     rdi, r14
+    mov     rsi, r8
+    call    kiln_core_memcpy_fast
+    pop     rdx
+    pop     r8
+    mov     rax, r14
+    add     r14, rdx
+    lea     r12, [r8 + rdx]
+    clc
+    ret
+
+.Ldb_owned_empty:
+    mov     rax, r14
+    mov     r12, r8
+    clc
+    ret
+.size kiln_core_dec_bytes, .-kiln_core_dec_bytes
+
+# ------------------------------------------------------------------------------
 # kiln_core_dec_frame_hdr
 #   Normative §5.2 KLN0 header validation in exact check order.
 #   Inputs:  rdi = expected_schema_hash

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ComplexRecord",
+  "$defs": {
+    "Item": {
+      "type": "object",
+      "properties": {
+        "sku":   { "type": "string" },
+        "qty":   { "type": "integer", "format": "uint32" },
+        "price": { "type": "number",  "format": "float" }
+      },
+      "required": ["sku", "qty", "price"]
+    },
+    "Empty": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  "type": "object",
+  "properties": {
+    "v_bool":    { "type": "boolean" },
+    "v_i8":      { "type": "integer", "format": "int8" },
+    "v_u8":      { "type": "integer", "format": "uint8" },
+    "v_i16":     { "type": "integer", "format": "int16" },
+    "v_u16":     { "type": "integer", "format": "uint16" },
+    "v_i32":     { "type": "integer", "format": "int32" },
+    "v_u32":     { "type": "integer", "format": "uint32" },
+    "v_f32":     { "type": "number",  "format": "float" },
+    "v_i64":     { "type": "integer", "format": "int64" },
+    "v_u64":     { "type": "integer", "format": "uint64" },
+    "v_int":     { "type": "integer", "format": "int" },
+    "v_uint":    { "type": "integer", "format": "uint" },
+    "v_f64":     { "type": "number",  "format": "double" },
+    "text":      { "type": "string" },
+    "raw":       { "type": "string",  "format": "binary" },
+    "empty":     { "$ref": "#/$defs/Empty" },
+    "opt_i32":   { "type": "integer", "format": "int32" },
+    "opt_str":   { "type": "string" },
+    "opt_item":  { "$ref": "#/$defs/Item" },
+    "opt_nums":  { "type": "array", "items": { "type": "number", "format": "double" } },
+    "nums":      { "type": "array", "items": { "type": "number", "format": "double" } },
+    "flags":     { "type": "array", "items": { "type": "boolean" } },
+    "u8_arr":    { "type": "array", "items": { "type": "integer", "format": "uint8" } },
+    "tags":      { "type": "array", "items": { "type": "string" } },
+    "blobs":     { "type": "array", "items": { "type": "string", "format": "binary" } },
+    "items":     { "type": "array", "items": { "$ref": "#/$defs/Item" } },
+    "matrix":    { "type": "array", "items": { "type": "array", "items": { "type": "integer", "format": "int32" } } },
+    "counters":  { "type": "object", "additionalProperties": { "type": "integer", "format": "int64" } },
+    "labels":    { "type": "object", "additionalProperties": { "type": "string" } },
+    "by_key":    { "type": "object", "additionalProperties": { "$ref": "#/$defs/Item" } },
+    "prompt":    { "type": "object", "format": "kiln-tensors" }
+  },
+  "required": [
+    "v_bool", "v_i8", "v_u8", "v_i16", "v_u16", "v_i32", "v_u32", "v_f32",
+    "v_i64", "v_u64", "v_int", "v_uint", "v_f64",
+    "text", "raw", "empty",
+    "nums", "flags", "u8_arr", "tags", "blobs", "items", "matrix",
+    "counters", "labels", "by_key", "prompt"
+  ]
+}

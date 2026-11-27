@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Point",
+  "type": "object",
+  "properties": {
+    "x": { "type": "integer", "format": "int32" },
+    "y": { "type": "integer", "format": "int32" }
+  },
+  "required": ["x", "y"]
+}

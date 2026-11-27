@@ -2,7 +2,7 @@
 .include "defs.inc"
 
 .section .rodata
-.Lver_str:        .asciz "0.1.0"
+.Lver_str:        .asciz "0.2.0"
 .Lerr_ok:         .asciz "OK"
 .Lerr_frame:      .asciz "FRAME"
 .Lerr_schema:     .asciz "SCHEMA"

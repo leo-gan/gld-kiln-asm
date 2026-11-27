@@ -89,6 +89,9 @@
 #   Preserves: rbx, rbp, r12..r15
 # ------------------------------------------------------------------------------
 .p2align 4
+.globl kiln_core_check_bool_bytes
+.type kiln_core_check_bool_bytes, @function
+kiln_core_check_bool_bytes:
 .Lcheck_bool_bytes:
     xor     rcx, rcx
     cmp     rsi, 32
@@ -130,6 +133,7 @@
 .Lcb_bad:
     stc
     ret
+.size kiln_core_check_bool_bytes, .-kiln_core_check_bool_bytes
 
 # ------------------------------------------------------------------------------
 # .Ldtype_expected_bytes

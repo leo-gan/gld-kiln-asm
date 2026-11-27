@@ -12,7 +12,7 @@
 | **Profiles** | Frozen (`0`, normative default) + embedded `KLNT` v2 tensor directory (`tensors`) |
 | **Optional Framing** | 16-byte `KLN0` header with FNV-1a-64 canonical schema hash |
 | **Conformance Suite** | **46/46** hex vectors ([`testdata/kiln-v2-cases.json`](testdata/kiln-v2-cases.json)) + **3/3** Frozen golden binaries ([`testdata/golden/`](testdata/golden/)) |
-| **Build Modes** | `MODE=cabi` (`lib/libkiln_asm.a` + `include/kiln_asm.h`) · `MODE=nolibc` (`bin/kiln_bench_nolibc`, zero `NEEDED` libs) |
+| **Build Modes** | `MODE=cabi` (`lib/libkiln_asm.a` + `lib/libkiln_asm.so` + `include/kiln_asm.h`) · `MODE=nolibc` (`bin/kiln_bench_nolibc`, zero `NEEDED` libs) |
 | **Target ISA** | Linux `x86_64` (`AVX2`, `ERMS`/`FSRM`, GNU `as` + `ld`) |
 | **Documentation** | <https://leo-gan.github.io/gld-kiln-asm/> |
 | **License** | MIT |
@@ -32,7 +32,8 @@
 ./scripts/run-tests.sh
 
 # Individual targets
-make MODE=cabi test          # builds lib/libkiln_asm.a and runs conformance suite
+make MODE=cabi test          # builds lib/libkiln_asm.a + lib/libkiln_asm.so and runs conformance suite
+make MODE=cabi test-codegen  # tests codegen/gld-kilngen-asm (static, shared .so, negative CLI, ctypes FFI)
 make MODE=nolibc test        # builds bin/kiln_bench_nolibc, checks readelf -d, runs --self-test
 make bench                   # runs 3-trial taskset -c 2 comparison (nolibc vs cabi vs c_ref -O3)
 ```

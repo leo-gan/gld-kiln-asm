@@ -1,0 +1,6 @@
+{
+    global:
+        kiln_asm_*;
+    local:
+        *;
+};
