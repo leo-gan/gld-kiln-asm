@@ -37,16 +37,17 @@ A single `Makefile` switch selects the execution/ABI mode over the **same core x
 
 To keep both `MODE=nolibc` and `MODE=cabi` clean and avoid duplicating codec logic:
 
-1. **Internal Register-Pinned Kernels (`arch/x86_64/core_*.s`):**
-   - Non-standard internal register contract kept live across nested calls:
+1. **Internal register-pinned kernels (`kiln_core_*`).** The prefix is the symbol name. The sources are `arch/x86_64/wire.s`, `utf8.s`, `tensor.s`, and `codecs_bench.s`. There is no `core_*.s` file.
+   - The register contract in `arch/x86_64/defs.inc` stays live across nested calls:
      - `r12` = wire cursor pointer (`src` on decode, `dst` on encode)
      - `r13` = wire end pointer (`end`, for single-compare bounds checks)
      - `r14` = scratch/arena bump pointer (decode) or writer capacity end (encode)
-     - `r15` = nesting `depth` / `flags` (`bit 0`: `check_utf8`, caps loaded from a context block when needed)
+     - `r15` = bits 0–7 nesting depth; bit 8 `FLAG_CHECK_UTF8`; bits 9–13 are the other feature flags in `defs.inc`
+     - `rbx` = `kiln_ctx_t*` (arena bounds and the count, byte, and depth caps)
    - **Carry-Flag (`CF`) error signaling:** `clc` on success; on failure, set `eax = kiln_err_t`, `rdx = byte_offset`, `stc`, `ret`. Callers check with a single `jc` (zero struct return overhead).
 2. **Thin Mode Shells:**
    - `arch/x86_64/nolibc_entry.s` — `_start`, bump arena (`mmap`), integer-to-ASCII printer (`write`), timing harness (`clock_gettime` syscall or `rdtsc`/`rdtscp` calibrated against `clock_gettime`), inline-macro hot loops.
-   - `arch/x86_64/abi_c.s` — System V AMD64 prologues/epilogues saving/restoring `r12`–`r15`, loading cursor state from `kiln_writer_t*` / `kiln_reader_t*`, calling internal kernels, translating `CF` + `eax` into C return codes.
+   - `arch/x86_64/abi_c.s` — System V AMD64 prologues and epilogues. Each wrapper saves `rbx` and `r12`–`r15`, builds a stack `kiln_ctx_t` from the C arguments in `include/kiln_asm.h`, calls a `kiln_core_*` kernel, and turns `CF` plus `eax` into a C `kiln_err_t`. There is no `kiln_writer_t` or `kiln_reader_t`.
 
 ### 3.2 Normative Error Codes (Kiln v2)
 
@@ -62,9 +63,9 @@ To keep both `MODE=nolibc` and `MODE=cabi` clean and avoid duplicating codec log
 | `7` | `KILN_ERR_TRAILING` | Unread bytes remaining after standalone root value/directory |
 | `8` | `KILN_ERR_DEPTH` | Nesting depth `> max_depth` (default `64`) |
 
-### 3.3 Planned Assembly Optimizations (Measured Individually)
+### 3.3 Assembly Optimizations (Measured Individually)
 
-Every optimization is gated behind an isolated A/B measurement so we know which techniques actually move the needle on Alder Lake:
+Each technique below is in the kernels. It was measured on its own on Alder Lake, and the paired results are in [`docs/experiments.md`](docs/experiments.md).
 
 1. **Unaligned LE scalar loads/stores** (`mov` 16/32/64-bit directly, zero byte shifting).
 2. **Pre-sized leaf struct encode:** One size calculation + single capacity check, then straight-line unchecked pointer stores.
