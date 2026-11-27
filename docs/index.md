@@ -25,7 +25,7 @@
 
 - **[Quickstart & Examples](asm/quickstart.md)** — Building `MODE=cabi` and `MODE=nolibc`, running conformance tests, and linking `libkiln_asm.a`.
 - **[API & ABI Reference](asm/api.md)** — Complete `include/kiln_asm.h` reference and the internal x86-64 register contract.
-- **[Implementation & Verification](asm/internals.md)** — SIMD/SWAR UTF-8 fusion, 12-step `KLNT` v2 validation, zero-libc ELF details, and conformance verification.
+- **[Implementation & Verification](asm/internals.md)** — SIMD/SWAR UTF-8 fusion, 12-step `KLNT` v2 validation, SIMD/GPU scope & tradeoffs, zero-libc ELF details, and conformance verification.
 - **[Experiments](experiments.md)** — Paired benchmark tables (`nolibc` vs `cabi` vs `c_ref`), A/B micro-optimization deltas, and reproduction commands.
 - **[Overview & Comparison](https://leo-gan.github.io/gld-kiln/comparison/)** — Kiln vs. JSON, Protobuf, FlatBuffers, Cap'n Proto, Safetensors, GGUF, and Arrow (in `gld-kiln`).
 

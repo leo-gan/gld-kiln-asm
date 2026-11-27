@@ -70,7 +70,7 @@ Each technique below is in the kernels. It was measured on its own on Alder Lake
 1. **Unaligned LE scalar loads/stores** (`mov` 16/32/64-bit directly, zero byte shifting).
 2. **Pre-sized leaf struct encode:** One size calculation + single capacity check, then straight-line unchecked pointer stores.
 3. **32-byte trailing writer slop (opt-in flag):** Allows branchless unconditional 16/32-byte `vmovdqu` copies for short strings (`0..32 B`) followed by `add r12, len`.
-4. **Fused single-pass AVX2 UTF-8 validation + copy:** Load into `xmm`/`ymm`, check ASCII via `vpmovmskb` + `test` while writing to destination; branch to full RFC 3629 validator (Keiser–Lemire AVX2 lookup for long non-ASCII, scalar fallback for short) only when any high bit is set.
+4. **Fused single-pass AVX2/SWAR UTF-8 validation + copy:** Load into `ymm` (32 B/iter via `vpmovmskb` + `test`) or 64/32-bit GPRs (SWAR `0x8080...`) while writing to destination; branch to the scalar RFC 3629 validator only when any high bit is set.
 5. **Pre-allocated bump arena vs. zero-copy views vs. `malloc`:** Explicitly separated rows in benchmarks so allocator cost is never conflated with codec cost.
 6. **Tensor bulk copy (`KLNT`):** Compare `rep movsb` (ERMS/FSRM) vs. unrolled AVX2 `vmovdqu` vs. non-temporal `vmovntdq` on the 2 MiB `f64` workload.
 

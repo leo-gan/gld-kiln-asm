@@ -42,7 +42,36 @@ Linking `bin/kiln_bench_nolibc` with `ld -static -nostdlib --gc-sections -z noex
 - No `PT_INTERP` or `PT_DYNAMIC` program headers
 - Non-executable `GNU_STACK` (`RW`)
 
-## 3. Verification Matrix
+## 3. Hardware Acceleration: SIMD and GPU Scope
+
+### SIMD Usage and Tradeoffs
+
+`gld-kiln-asm` uses SIMD selectively — combining **AVX2** (256-bit `ymm`), **AVX/SSE** (128-bit `xmm`), and **SWAR** (32/64-bit GPR bitmasks) only where the data is wide and homogeneous enough to beat scalar instructions:
+
+| Source | ISA / Technique | Scope |
+| :--- | :--- | :--- |
+| `arch/x86_64/utf8.s` | AVX2 (`vmovdqu` + `vpmovmskb`) + SWAR (`0x8080...`) | 32 B/iter ASCII validation and fused validate+copy (`len >= 32`), stepping down to 8 B / 4 B SWAR. Non-ASCII bytes fall back to the scalar RFC 3629 validator. |
+| `arch/x86_64/wire.s` | AVX / AVX2 (`vmovdqu`, `vmovntdq` + `sfence`) | Overlapping 16 B `xmm` copy for `17..32 B`; opt-in 128 B/iter unrolled `vmovdqu` (`KILN_OPT_COPY_AVX2`) and non-temporal `vmovntdq` (`KILN_OPT_COPY_NT`) for `KLNT` bulk payloads. |
+| `arch/x86_64/tensor.s` | AVX2 / SSE4.1 (`vptest`, `ptest`, `vpxor`) | 32 B/iter `bool` tensor domain validation (`0xFE` mask), 32 B header and 16 B descriptor reserved-byte zero checks, and 1–4 store zero-initialization of headers and 128 B descriptors. |
+| `arch/x86_64/codecs_bench.s` | GPR SWAR (default) / AVX2 (`KILN_OPT_SLOP32`) | Inlined overlapping 4 B SWAR UTF-8+copy for 0..8 B strings; opt-in 32 B `vmovdqu` slop copy on encode. |
+
+Paired A/B measurements in [Experiments](../experiments.md) define where vector instructions pay off versus where scalar/SWAR wins:
+
+- **Where SIMD pays off:** Wide homogeneous scans (`>= 32 B` ASCII strings, `bool` tensors, fixed reserved blocks) run at cache/memory bandwidth; non-temporal `vmovntdq` improves 2 MiB `KLNT` encode by ~5% over `rep movsb` (`69.7–70.9 µs` vs `73.8–74.4 µs`) by avoiding cache read-for-ownership traffic; and 4..8 B GPR SWAR delivered a **3.0×–3.6×** decode speedup on `Message`/`Batch[100]` without `vzeroupper` overhead.
+- **Where wide AVX2 does not pay off:** On short strings (5 B in `Message`), `KILN_OPT_SLOP32` (`vmovdqu ymm` + `vzeroupper`) was slightly slower than overlapping 32-bit GPR stores (`2.8 ns` vs `2.7 ns`) while adding a 32 B buffer-slop requirement. Heterogeneous scalar structs (`Point`, `Message`) already encode in ~8 cycles via straight-line unaligned `mov` instructions, and plain cached `vmovdqu` barely differs from Alder Lake `rep movsb` (`72.8 µs` vs `73.8 µs`) once memory-bandwidth bound.
+- **Potential future SIMD extensions:** Long non-ASCII UTF-8 payloads (Keiser–Lemire AVX2 lookup in `utf8.s`) and long byte-slice comparisons in `kiln_core_cmp_bytes` (`wire.s`, currently 1 byte/iter) remain scalar and are the primary candidates if those workloads become hot.
+
+### Why CPU-Only (No GPU Offload) and `KLNT` GPU Interop
+
+Executing Kiln wire encoding or decoding on a GPU is out of scope and counterproductive for this workload:
+
+1. **Launch latency exceeds codec runtime by orders of magnitude:** `gld-kiln-asm` encodes/decodes a `Message` in `2.7–3.5 ns`, processes `Batch[100]` (`4.4 KB`) in `274–349 ns`, and validates a 2 MiB `KLNT` directory (zero-copy view) in `22.5 ns`. A single GPU kernel launch alone costs `~3–10 µs`.
+2. **Bus transfer vs. CPU memory bandwidth:** A single CPU core copies a 2 MiB `KLNT` payload at `~30 GB/s` (`~70 µs`). Round-tripping 2 MiB across PCIe Gen4 x16 (`~25 GB/s` usable) takes `~160+ µs` in transfer time alone before any kernel executes.
+3. **Sequential, branchy wire parsing:** Frozen records with variable-length strings have no per-record offset index (record `i+1` starts after parsing record `i`), and validation combines near-zero arithmetic intensity with dense bounds, depth, ordering, and UTF-8 checks. Moreover, `MODE=nolibc` intentionally has zero dynamic library dependencies; driving a GPU requires host runtime/driver APIs (`CUDA`, `HIP`, `Vulkan`, `OpenCL`).
+
+**Recommended GPU integration pattern (`KLNT` v2):** Rather than running the wire parser on a GPU, keep `gld-kiln-asm` on the CPU as a nanosecond-scale metadata validator and zero-copy directory parser. Because `KLNT` v2 guarantees 64-byte payload alignment and contiguous little-endian ML tensors (`f16`, `bf16`, `f8*`, packed 4-bit `i4`/`u4`/`e2m1`), a host application linking `libkiln_asm.a` can validate the directory in ~22 ns (zero-copy view) and stream the validated payload slices straight from pinned host memory (`cudaMemcpyAsync`) or NVMe (GPUDirect Storage) into VRAM, keeping GPU kernels focused on compute or dequantization of VRAM-resident tensors.
+
+## 4. Verification Matrix
 
 Run `./scripts/run-tests.sh` to execute all verification gates:
 
