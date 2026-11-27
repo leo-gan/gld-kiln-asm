@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: x86-64 Assembly tests (cabi + nolibc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check CPU & GNU toolchain
+        run: |
+          lscpu | grep -E "Model name|Architecture|Flags" || true
+          as --version | head -n 1
+          ld --version | head -n 1
+          gcc --version | head -n 1
+      - name: Run full verification suite
+        run: ./scripts/run-tests.sh
+
+  docs:
+    name: Docs build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install MkDocs
+        run: pip install -r requirements-docs.txt
+      - name: Build site
+        run: mkdocs build --strict

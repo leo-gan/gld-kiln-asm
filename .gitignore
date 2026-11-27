@@ -1,0 +1,10 @@
+build/
+bin/
+lib/
+dist/
+site/
+*.o
+*.a
+*.d
+__pycache__/
+.DS_Store
