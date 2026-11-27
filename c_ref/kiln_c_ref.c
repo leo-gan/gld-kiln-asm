@@ -2,7 +2,7 @@
 /*
  * Honest apples-to-apples pure C11 (-O3 -march=native) Kiln v2 baseline.
  *
- * Parity contract (DESIGN.md §4):
+ * Parity contract (docs/experiments.md §1):
  * - Uses identical runtime-populated structs (kiln_asm.h types), bounds checks,
  *   RFC 3629 UTF-8 validation (AVX2/SWAR ASCII fast-path + scalar fallback),
  *   KLNT v2 header/descriptor validation, bump arena / view / malloc semantics,

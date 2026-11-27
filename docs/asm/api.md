@@ -2,7 +2,7 @@
 
 `gld-kiln-asm` exposes two clean layers over the same x86-64 codec kernels:
 
-1. **Public C11 API (`include/kiln_asm.h`)** — System V AMD64 callable symbols archived into `lib/libkiln_asm.a` (`MODE=cabi`).
+1. **Public C11 API (`include/kiln_asm.h`)** — System V AMD64 callable symbols packaged as both a static archive (`lib/libkiln_asm.a`) and a zero-libc shared library (`lib/libkiln_asm.so`, exporting only `kiln_asm_*` via `arch/x86_64/libkiln_asm.map`) under `MODE=cabi`.
 2. **Internal Register-Pinned ABI (`arch/x86_64/defs.inc`)** — non-standard internal register contract used directly by `MODE=nolibc` and bridged once at entry/exit by `arch/x86_64/abi_c.s`.
 
 ---
@@ -66,7 +66,7 @@ Inline arena helpers: `kiln_arena_init(a, buf, cap)`, `kiln_arena_reset(a)`, `ki
 
 ### Metadata & Low-Level Primitives
 
-- `const char *kiln_asm_version(void)` — returns `"0.1.0"`.
+- `const char *kiln_asm_version(void)` — returns `"0.2.0"`.
 - `const char *kiln_asm_err_name(kiln_err_t err)` — returns normative uppercase error name.
 - `const char *kiln_asm_dtype_name(uint16_t dtype)` — returns canonical name for standard dtypes `1..19` (`"f64"` .. `"e8m0"`), or `NULL` otherwise.
 - `int kiln_asm_utf8_ok(const uint8_t *s, size_t n)` — returns `1` if valid RFC 3629 UTF-8, `0` otherwise.

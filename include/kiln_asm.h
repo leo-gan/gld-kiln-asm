@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#define KILN_ASM_VERSION      "0.1.0"
+#define KILN_ASM_VERSION      "0.2.0"
 #define KILN_CAP_DEFAULT      16777216ULL
 #define KILN_DEPTH_DEFAULT    64U
 
@@ -60,6 +60,8 @@ typedef struct kiln_str_t {
     const uint8_t *ptr;
     uint64_t len;
 } kiln_str_t;
+
+typedef kiln_str_t kiln_bytes_t;
 
 typedef struct kiln_point_t {
     int32_t x;

@@ -10,8 +10,8 @@
 | **Profiles** | Frozen (`0`, normative default) + embedded `KLNT` v2 tensor directory (`tensors`) |
 | **Optional Framing** | 16-byte `KLN0` header with FNV-1a-64 canonical schema hash |
 | **Conformance Suite** | **46/46** vectors (`testdata/kiln-v2-cases.json`) + **3/3** Frozen golden binaries (`testdata/golden/`) |
-| **Build Modes** | `MODE=cabi` (`lib/libkiln_asm.a` + `include/kiln_asm.h`) · `MODE=nolibc` (`bin/kiln_bench_nolibc`, 0 `NEEDED` libs) |
-| **Version** | `0.1.0` |
+| **Build Modes** | `MODE=cabi` (`lib/libkiln_asm.a` + `lib/libkiln_asm.so` + `include/kiln_asm.h`) · `MODE=nolibc` (`bin/kiln_bench_nolibc`, 0 `NEEDED` libs) |
+| **Version** | `0.2.0` |
 | **License** | MIT |
 
 ## Core Invariants

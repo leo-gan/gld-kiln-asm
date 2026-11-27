@@ -13,7 +13,7 @@ grep -Fq ".asciz \"${VER}\"" arch/x86_64/abi_c.s
 echo "VERSION=${VER} matches include/kiln_asm.h and arch/x86_64/abi_c.s"
 
 echo ""
-echo "=== 2. Build & test MODE=cabi (libkiln_asm.a + 46/46 conformance + golden) ==="
+echo "=== 2. Build & test MODE=cabi (libkiln_asm.a + libkiln_asm.so + 46/46 conformance + golden) ==="
 make --no-print-directory MODE=cabi test
 
 echo ""
@@ -29,6 +29,10 @@ echo ""
 echo "=== 5. Build apples-to-apples C reference baseline (c_ref) ==="
 make --no-print-directory c_ref
 echo "Built bin/kiln_bench_cref cleanly (-Wall -Wextra -Werror)"
+
+echo ""
+echo "=== 6. AOT schema codegen (gld-kilngen-asm: static, shared .so, negative CLI, ctypes FFI) ==="
+make --no-print-directory MODE=cabi test-codegen
 
 echo ""
 echo "ALL gld-kiln-asm checks PASSED."

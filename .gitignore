@@ -3,8 +3,10 @@ bin/
 lib/
 dist/
 site/
+docs/internal/
 *.o
 *.a
+*.so
 *.d
 __pycache__/
 .DS_Store

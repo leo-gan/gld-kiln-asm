@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IdTensors",
+  "type": "object",
+  "properties": {
+    "id":    { "type": "integer", "format": "int64" },
+    "batch": { "type": "object",  "format": "kiln-tensors" }
+  },
+  "required": ["id", "batch"]
+}

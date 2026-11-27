@@ -18,7 +18,7 @@ A single `MODE` variable switches between the System V C-ABI static library and 
 Or invoke each mode directly:
 
 ```bash
-# 1. C-callable static library (lib/libkiln_asm.a + include/kiln_asm.h)
+# 1. C-callable static & shared libraries (lib/libkiln_asm.a, lib/libkiln_asm.so, include/kiln_asm.h)
 make MODE=cabi
 make MODE=cabi test
 
@@ -51,6 +51,32 @@ Expected output:
 Point: x=9 y=-4 (8 B)
 Message (framed): len=53 hash=0xd6646445f41ce803 s1=hi s2=z arena=3 B
 KLNT v2: name=weights dtype=f32 shape=[2] values=[1.0, -2.0] block=264 B
+```
+
+## Generating Custom Schema Codecs (`gld-kilngen-asm`)
+
+`codegen/gld-kilngen-asm` compiles any schema in the normative [Kiln v2 JSON Schema subset](https://leo-gan.github.io/gld-kiln/spec/#dynamic-values) (plus embedded `tensors` fields via `"format": "kiln-tensors"` or `"x-kiln": "tensors"`) into self-contained x86-64 GAS Assembly (`.s`) and C11 headers (`.h`) with compile-time `_Static_assert` layout verification, FNV-1a-64 schema hashes, framed wrappers, and batch codecs:
+
+```bash
+# Generate codecs for one or more schemas (+ linker version script for .so builds)
+./codegen/gld-kilngen-asm --prefix bench --emit-map \
+    --schema path/to/message.json \
+    --schema path/to/request.json \
+    --out build/gen
+
+# Assemble and link into a single zero-libc shared library for cross-language FFI
+as --64 -o build/gen/message.o build/gen/message.s
+as --64 -o build/gen/request.o build/gen/request.s
+ld -shared -Bsymbolic --version-script=build/gen/message.map \
+    -z noexecstack -z relro -z now -soname libkiln_asm_bench.so \
+    -o libkiln_asm_bench.so build/gen/message.o build/gen/request.o \
+    --whole-archive lib/libkiln_asm.a --no-whole-archive
+```
+
+Run the bundled codegen verification suite (golden parity, all 13 scalars, `str`, `bytes`, `opt<T>`, `list<T>`, `dict<str,V>`, embedded `KLNT` v2 `tensors`, negative CLI checks, and Python `ctypes` FFI against the generated `.so`):
+
+```bash
+make MODE=cabi test-codegen
 ```
 
 ## Running Paired Benchmarks

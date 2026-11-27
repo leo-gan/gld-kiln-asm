@@ -51,6 +51,9 @@ extra:
 plugins:
   - search
 
+exclude_docs: |
+  internal/
+
 markdown_extensions:
   - attr_list
   - footnotes

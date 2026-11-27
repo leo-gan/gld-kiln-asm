@@ -26,9 +26,10 @@ jobs:
         run: |
           mkdir -p dist
           cp lib/libkiln_asm.a dist/libkiln_asm.a
+          cp lib/libkiln_asm.so dist/libkiln_asm.so
           cp include/kiln_asm.h dist/kiln_asm.h
           cp bin/kiln_bench_nolibc dist/kiln_bench_nolibc
-          (cd dist && sha256sum libkiln_asm.a kiln_asm.h kiln_bench_nolibc > SHA256SUMS)
+          (cd dist && sha256sum libkiln_asm.a libkiln_asm.so kiln_asm.h kiln_bench_nolibc > SHA256SUMS)
           (cd dist && sha256sum -c SHA256SUMS)
           ls -lh dist/
 
@@ -45,6 +46,7 @@ jobs:
         run: |
           gh release upload "${{ github.event.release.tag_name }}" \
             dist/libkiln_asm.a \
+            dist/libkiln_asm.so \
             dist/kiln_asm.h \
             dist/kiln_bench_nolibc \
             dist/SHA256SUMS \
